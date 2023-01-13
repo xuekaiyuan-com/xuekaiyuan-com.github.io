@@ -1,0 +1,3 @@
+baseURL      = 'https://huzhenghui.github.io/Hugo-Bootstrap-CSS/'
+languageCode = 'zh-cn'
+title        = 'Hugo Bootstrap CSS'
