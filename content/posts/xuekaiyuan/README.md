@@ -15,7 +15,9 @@ publishdate: 2023-01-19
     - [版本](#版本)
         - [`v0.1`](#v01)
         - [`v0.2`](#v02)
+        - [`v0.3`](#v03)
     - [仓库结构](#仓库结构)
+    - [`git submodule`（子模块）](#git-submodule子模块)
     - [GitHub Action](#github-action)
     - [`Hugo`配置](#hugo配置)
     - [`/README.md`](#readmemd)
@@ -54,6 +56,16 @@ publishdate: 2023-01-19
 
 <https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/tree/v0.2>
 
+### `v0.3`
+
+增加<https://github.com/huzhenghui/posts/>为`git submodule`（子模块），
+并借助`GitHub Action`在<https://github.com/huzhenghui/posts/>更新时自动更新，
+详见<https://www.xuekaiyuan.com/huzhenghui/github/readme/>
+
+位置在
+
+<https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/tree/v0.3>
+
 ## 仓库结构
 
 命令
@@ -70,12 +82,22 @@ tree -a -F -I '.git/'
 │   └── workflows/
 │       └── hugo.yml
 ├── .gitignore
+├── .gitmodules
 ├── .hugo_build.lock
 ├── README.md -> ./content/xuekaiyuan/README.md
 ├── archetypes/
 │   └── default.md
 ├── config.toml
 ├── content/
+│   ├── huzhenghui/
+│   │   ├── .git
+│   │   ├── .github/
+│   │   │   └── workflows/
+│   │   │       └── main.yml
+│   │   ├── GitHub/
+│   │   │   └── README.md
+│   │   ├── README.md -> ./GitHub/README.md
+│   │   └── _index.md
 │   └── posts/
 │       ├── Hugo-Bootstrap-CSS/
 │       │   └── README.md
@@ -91,17 +113,76 @@ tree -a -F -I '.git/'
     └── _gen/
         ├── assets/
         └── images/
+
+17 directories, 18 files
 ```
+
+## `git submodule`（子模块）
+
+在<https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/>中，
+运行如下命令将<https://github.com/huzhenghui/posts/>添加为子模块
+
+```shell
+git submodule add https://github.com/huzhenghui/posts content/huzhenghui
+```
+
+命令中<https://github.com/huzhenghui/posts>为子模块仓库的位置，
+`content/huzhenghui`为添加的位置，添加后可以看到`git submodule`（子模块）的配置文件
+
+<https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/blob/master/.gitmodules>
+
+```toml
+[submodule "content/huzhenghui"]
+ path = content/huzhenghui
+ url = https://github.com/huzhenghui/posts
+```
+
+子模块添加在<https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/tree/master/content>，
+其中可以看到`huzhenghui`，单击即可进入<https://github.com/huzhenghui/posts/>
 
 ## GitHub Action
 
-使用`GitHub`自动创建的`Hugo` `Action`，位置在
+基于`GitHub`自动创建的`Hugo` `Action`，位置在
 
 <https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/blob/master/.github/workflows/hugo.yml>
 
 Since [v0.1](https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/tree/v0.1)
+使用`GitHub`自动创建的`Hugo` `Action`
 
 <https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/blob/v0.1/.github/workflows/hugo.yml>
+
+[v0.3](https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/tree/v0.3)
+响应<https://github.com/huzhenghui/posts/>中`GitHub Action`触发的事件，并增加`git submodule`（子模块）自动更新。
+
+<https://github.com/xuekaiyuan-com/xuekaiyuan-com.github.io/blob/v0.3/.github/workflows/hugo.yml>
+
+其中在`on`中增加响应`repository_dispatch`事件，
+`repository_dispatch`事件在[`huzhenghui/posts`的`GitHub Action`文件](https://www.xuekaiyuan.com/huzhenghui/github/readme/#huzhenghuiposts%E7%9A%84github-action%E6%96%87%E4%BB%B6)中触发。
+
+```diff
+ on:
+   # Runs on pushes targeting the default branch
+   push:
+     branches: ["master"]
+ 
+   # Allows you to run this workflow manually from the Actions tab
+   workflow_dispatch:
++  repository_dispatch:
+```
+
+在`jobs`的`Checkout`之后`Setup Pages`之前增加`Update module`
+
+```diff
+       - name: Checkout
+         uses: actions/checkout@v3
+         with:
+           submodules: recursive
++      - name: Update module
++        run: git submodule update --remote
+       - name: Setup Pages
+         id: pages
+         uses: actions/configure-pages@v2
+```
 
 ## `Hugo`配置
 
